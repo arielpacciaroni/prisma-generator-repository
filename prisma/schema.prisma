@@ -1,0 +1,57 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+generator prisma_generator_repository {
+  provider = "node ./lib/index.js"
+  output   = "../output"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = ""
+}
+
+model User {
+  id        String         @id @default(uuid())
+  firstName String         @db.VarChar(255)
+  lastName  String         @db.VarChar(255)
+  email     String         @unique
+  createdAt DateTime       @default(now()) @db.Timestamp(0)
+  updatedAt DateTime       @updatedAt @db.Timestamp(0)
+  nameTag   String?        @unique @db.VarChar(16)
+  birthDate DateTime?      @db.Date
+  groups    UserPerGroup[]
+}
+
+model Group {
+  id          String         @id @default(uuid())
+  groupName   String         @db.VarChar(32)
+  createdAt   DateTime       @default(now()) @db.Timestamp(0)
+  description String         @default("") @db.VarChar(255)
+  photo       String         @default("") @db.VarChar(255)
+  openGroup   Boolean        @default(true)
+  members     UserPerGroup[]
+}
+
+model UserPerGroup {
+  user    User   @relation(fields: [userId], references: [id])
+  userId  String
+  group   Group  @relation(fields: [groupId], references: [id])
+  groupId String
+  role    Role   @relation(fields: [roleId], references: [id])
+  roleId  String
+
+  @@id([userId, groupId])
+}
+
+model Role {
+  id              String         @id @default(uuid())
+  name            String         @unique
+  descriptiveName String         @default("") @db.VarChar(24)
+  description     String         @default("") @db.VarChar(255)
+  user            UserPerGroup[]
+}
